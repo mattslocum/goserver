@@ -17,10 +17,10 @@ func setupRoutes() {
 	// TODO: Error handler and logger
 	//http.HandleFunc("/", baseRoute)
 	// better pattern matching?
-	http.Handle("/hash", hash.NewHashHandler())
-	http.Handle("/hash/", hash.NewHashHandler())
-	http.Handle("/shutdown", new(shutdown.ShutdownHandler))
-	http.Handle("/stats", new(stats.StatsHandler))
+	http.Handle("/hash", hash.NewHashRouter())
+	http.Handle("/hash/", hash.NewHashRouter())
+	http.Handle("/shutdown", new(shutdown.ShutdownRouter))
+	http.Handle("/stats", new(stats.StatsRouter))
 }
 
 func Setup() {

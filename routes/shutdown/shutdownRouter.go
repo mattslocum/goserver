@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-type ShutdownHandler struct {}
+type ShutdownRouter struct {}
 
-func (h *ShutdownHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (h *ShutdownRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "Shutdown!")
 }

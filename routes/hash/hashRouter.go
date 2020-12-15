@@ -13,29 +13,29 @@ import (
 )
 
 // singleton
-var instance *HashHandler
+var instance *HashRouter
 var mu = &sync.Mutex{}
 
 /**
- * Construct a HashHandler. Using this to do our DI since we don't have an IOC framework
+ * Construct a HashRouter. Using this to do our DI since we don't have an IOC framework
  */
-func NewHashHandler() *HashHandler {
+func NewHashRouter() *HashRouter {
 	mu.Lock()
 	defer mu.Unlock()
 
 	if instance == nil {
-		instance = &HashHandler{store: memorystore.Cache}
+		instance = &HashRouter{store: memorystore.Cache}
 	}
 	return instance
 }
 
-type HashHandler struct {
+type HashRouter struct {
 	mu sync.Mutex // guards count
 	count  int
 	store memorystore.ICacheStore
 }
 
-func (h *HashHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (h *HashRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
 		h.get(w, req)
@@ -44,12 +44,12 @@ func (h *HashHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (h *HashHandler) get(w http.ResponseWriter, req *http.Request) {
+func (h *HashRouter) get(w http.ResponseWriter, req *http.Request) {
 	id, _ := strconv.Atoi(strings.TrimPrefix(req.URL.Path, "/hash/"))
 	fmt.Fprintf(w, "%s", h.store.Get(id))
 }
 
-func (h *HashHandler) post(w http.ResponseWriter, req *http.Request) {
+func (h *HashRouter) post(w http.ResponseWriter, req *http.Request) {
 	num := h.inc()
 	fmt.Fprintf(w, "%d\n", num)
 
@@ -57,14 +57,14 @@ func (h *HashHandler) post(w http.ResponseWriter, req *http.Request) {
 	go h.hash(num, password)
 }
 
-func (h *HashHandler) inc() int {
+func (h *HashRouter) inc() int {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.count++
 	return h.count
 }
 
-func (h *HashHandler) hash(num int, password string) {
+func (h *HashRouter) hash(num int, password string) {
 	time.Sleep(5 * time.Second) // Latency! yay!
 	hasher := sha512.New()
 	hasher.Write([]byte(password))

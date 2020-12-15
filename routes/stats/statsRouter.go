@@ -5,8 +5,8 @@ import (
 	"net/http"
 )
 
-type StatsHandler struct {}
+type StatsRouter struct {}
 
-func (h *StatsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (h *StatsRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "Stats")
 }
