@@ -1,4 +1,4 @@
-package memorystore
+package memoryStore
 
 // ICacheStore interface so we could swap out with backing store later.
 type ICacheStore interface {

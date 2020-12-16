@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"time"
 )
@@ -17,7 +16,6 @@ func HttpTimingMiddleware(key string, next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		tEnd := time.Now()
 		Timers[key].AddTime(int64(tEnd.Sub(tStart)))
-		log.Printf("API Call took: %d", tEnd.Sub(tStart))
 	})
 }
 

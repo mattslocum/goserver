@@ -4,7 +4,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
-	"github.com/mattslocum/goserver/internal"
+	"github.com/mattslocum/goserver/internal/memoryStore"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,9 +19,14 @@ var once sync.Once
 /**
  * Construct a HashRouter. Using this to do our DI since we don't have an IOC framework
  */
-func GetHashRouter() *HashRouter {
+func GetHashRouter(wg *sync.WaitGroup) *HashRouter {
 	once.Do(func() {
-		instance = &HashRouter{store: memorystore.Cache, sleep: 5, HashDone: make(chan string, 1)}
+		instance = &HashRouter{
+			store: memoryStore.Cache,
+			sleep: 5,
+			HashDone: make(chan string, 1),
+			wg: wg,
+		}
 	})
 	return instance
 }
@@ -29,9 +34,10 @@ func GetHashRouter() *HashRouter {
 type HashRouter struct {
 	mu sync.Mutex // guard count
 	count  int
-	store memorystore.ICacheStore
+	store memoryStore.ICacheStore
 	sleep int // Used to show latency
 	HashDone chan<- string // Won't need this if hash is its own service
+	wg *sync.WaitGroup
 }
 
 func (h *HashRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -67,10 +73,13 @@ func (h *HashRouter) inc() int {
 
 // Not sure if this should be considered the biz logic or if it is expected that hash is 3rd party service.
 func (h *HashRouter) hash(num int, password string) {
+	h.wg.Add(1)
 	time.Sleep(time.Duration(h.sleep) * time.Second) // Latency! yay!
 	hasher := sha512.New()
 	hasher.Write([]byte(password))
 	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 	h.store.Put(num, sha)
+	fmt.Println("writting hash", sha)
+	h.wg.Done()
 	h.HashDone <- sha
 }
