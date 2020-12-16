@@ -4,6 +4,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
+	"github.com/mattslocum/goserver/internal/logger"
 	"github.com/mattslocum/goserver/internal/memoryStore"
 	"net/http"
 	"strconv"
@@ -79,7 +80,7 @@ func (h *HashRouter) hash(num int, password string) {
 	hasher.Write([]byte(password))
 	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 	h.store.Put(num, sha)
-	fmt.Println("writting hash", sha)
+	logger.Debug.Println("writting hash", sha)
 	h.wg.Done()
 	h.HashDone <- sha
 }
