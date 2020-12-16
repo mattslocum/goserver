@@ -9,6 +9,7 @@ import (
 	shutdownRouter "github.com/mattslocum/goserver/routes/shutdown"
 	stats "github.com/mattslocum/goserver/routes/stats"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -17,8 +18,7 @@ var loggerMM = middleware.HttpLoggingMiddleware
 var timing = middleware.HttpTimingMiddleware
 
 func setupRoutes(router *http.ServeMux, group *sync.WaitGroup) {
-	// TODO: Error handler and logger
-	// better pattern matching?
+	// Could we have better pattern matching? This works for now.
 	router.Handle("/hash", loggerMM(timing("GetHash", hash.GetHashRouter(group))))
 	router.Handle("/hash/", loggerMM(hash.GetHashRouter(group)))
 	router.Handle("/shutdown", loggerMM(new(shutdownRouter.ShutdownRouter)))
@@ -30,21 +30,21 @@ func Serve() (err error) {
 	router := http.NewServeMux()
 	setupRoutes(router, &group)
 
+	port := "8080"
+	if os.Getenv("PORT") != "" {
+		port = os.Getenv("PORT")
+	}
 	srv := &http.Server{
-		Addr: ":8080",
+		Addr: ":" + port,
 		Handler: router,
 	}
 
 	go func() {
-		logger.Info.Print("Starting Server on port 8080")
-		// Do we need to do http.Server?
-		err = srv.ListenAndServe()
+		logger.Info.Printf("Starting Server on port %s", port)
+		if err = srv.ListenAndServe(); err != nil {
+			logger.Error.Fatalf("Error starting server: %s", err)
+		}
 	}()
-
-	// Do we have concurrency issue here?
-	if err != nil {
-		return err
-	}
 
 	<-shutdown.Ctx.Done()
 	logger.Info.Println("Stopping...")
@@ -54,7 +54,7 @@ func Serve() (err error) {
 		cancel()
 	}()
 	if err = srv.Shutdown(ctxTimer); err != nil {
-		logger.Error.Fatalf("server Shutdown Failed: %s", err)
+		logger.Error.Printf("Server Shutdown Failed: %s", err)
 	}
 
 	group.Wait()

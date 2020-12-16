@@ -25,7 +25,6 @@ func GetHashRouter(wg *sync.WaitGroup) *HashRouter {
 		instance = &HashRouter{
 			store: memoryStore.Cache,
 			sleep: 5,
-			HashDone: make(chan string, 1),
 			wg: wg,
 		}
 	})
@@ -37,31 +36,47 @@ type HashRouter struct {
 	count  int
 	store memoryStore.ICacheStore
 	sleep int // Used to show latency
-	HashDone chan<- string // Won't need this if hash is its own service
 	wg *sync.WaitGroup
 }
 
+// Main entry point for HashRouter.
+// Handles both GET and POST
 func (h *HashRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
 		h.get(w, req)
 	case "POST":
 		h.post(w, req)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprint(w, "Method not supported")
 	}
 }
 
 func (h *HashRouter) get(w http.ResponseWriter, req *http.Request) {
-	// validation?
-	id, _ := strconv.Atoi(strings.TrimPrefix(req.URL.Path, "/hash/"))
+	id, err := strconv.Atoi(strings.TrimPrefix(req.URL.Path, "/hash/"))
+
+	if err != nil {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		fmt.Fprintf(w, "invalid hash ID. Example: /hash/123")
+		return
+	}
+	// we are okay if the number doesn't exist yet.
+
 	fmt.Fprintf(w, "%s", h.store.Get(id))
 }
 
 func (h *HashRouter) post(w http.ResponseWriter, req *http.Request) {
+	// validation
+	password := req.FormValue("password")
+	if password == "" {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		fmt.Fprintf(w, "'password' is required")
+		return
+	}
+
 	num := h.inc()
 	fmt.Fprintf(w, "%d", num)
-
-	// validation?
-	password := req.FormValue("password")
 	go h.hash(num, password)
 }
 
@@ -80,7 +95,6 @@ func (h *HashRouter) hash(num int, password string) {
 	hasher.Write([]byte(password))
 	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 	h.store.Put(num, sha)
-	logger.Debug.Println("writting hash", sha)
+	logger.Debug.Println("writing hash", sha)
 	h.wg.Done()
-	h.HashDone <- sha
 }

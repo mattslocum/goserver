@@ -7,5 +7,5 @@ LOG_LEVEL
 * DEBUG | INFO | WARN | ERROR
 * Case sensitive. Defaults to Debug.
 
-asdf
-*awersd
+PORT
+* Defaults to 8080

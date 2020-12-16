@@ -1,14 +1,17 @@
 package routes
 
 import (
-	memorystore "github.com/mattslocum/goserver/internal"
+	"github.com/mattslocum/goserver/internal/memoryStore"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strconv"
+	"sync"
 	"testing"
 )
+
+var wg sync.WaitGroup
 
 func TestHashRouter_ServeHTTP_post_inc(t *testing.T) {
 	router, _ := newRouter()
@@ -57,7 +60,7 @@ func TestHashRouter_ServeHTTP_post_hash(t *testing.T) {
 			t.Error(err)
 		}
 
-		// HashDone feels a little hacky, but this is contrived anyway.
+		wg.Wait()
 		sha := store.Get(i + 1) // since we output starting at 1
 		if sha != test.hash {
 			t.Errorf("Wrong Hash. got: %s, want: %s", sha, test.hash)
@@ -66,7 +69,7 @@ func TestHashRouter_ServeHTTP_post_hash(t *testing.T) {
 }
 
 func TestHashRouter_ServeHTTP_get(t *testing.T) {
-	router, store := newRouter(memorystore.NewMemoryStore())
+	router, store := newRouter(memoryStore.NewMemoryStore())
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
@@ -87,12 +90,12 @@ func TestHashRouter_ServeHTTP_get(t *testing.T) {
 }
 
 
-func newRouter(stores ...*memorystore.MemoryStore) (*HashRouter, *memorystore.MemoryStore) {
-	var store *memorystore.MemoryStore
+func newRouter(stores ...*memoryStore.MemoryStore) (*HashRouter, *memoryStore.MemoryStore) {
+	var store *memoryStore.MemoryStore
 	if len(stores) > 0 {
 		store = stores[0]
 	} else {
-		store = memorystore.NewMemoryStore()
+		store = memoryStore.NewMemoryStore()
 	}
-	return &HashRouter{store: store, sleep: 0, HashDone: make(chan string)}, store
+	return &HashRouter{store: store, sleep: 0, wg: &wg}, store
 }
