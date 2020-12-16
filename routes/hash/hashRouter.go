@@ -14,7 +14,7 @@ import (
 
 // singleton
 var instance *HashRouter
-var mu = &sync.Mutex{}
+var mu = &sync.Mutex{} // guard instance
 
 /**
  * Construct a HashRouter. Using this to do our DI since we don't have an IOC framework
@@ -24,15 +24,17 @@ func NewHashRouter() *HashRouter {
 	defer mu.Unlock()
 
 	if instance == nil {
-		instance = &HashRouter{store: memorystore.Cache}
+		instance = &HashRouter{store: memorystore.Cache, sleep: 5, HashDone: make(chan string, 1)}
 	}
 	return instance
 }
 
 type HashRouter struct {
-	mu sync.Mutex // guards count
+	mu sync.Mutex // guard count
 	count  int
 	store memorystore.ICacheStore
+	sleep int // Used to show latency
+	HashDone chan<- string // Won't need this if hash is its own service
 }
 
 func (h *HashRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -45,14 +47,16 @@ func (h *HashRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *HashRouter) get(w http.ResponseWriter, req *http.Request) {
+	// validation?
 	id, _ := strconv.Atoi(strings.TrimPrefix(req.URL.Path, "/hash/"))
 	fmt.Fprintf(w, "%s", h.store.Get(id))
 }
 
 func (h *HashRouter) post(w http.ResponseWriter, req *http.Request) {
 	num := h.inc()
-	fmt.Fprintf(w, "%d\n", num)
+	fmt.Fprintf(w, "%d", num)
 
+	// validation?
 	password := req.FormValue("password")
 	go h.hash(num, password)
 }
@@ -64,10 +68,12 @@ func (h *HashRouter) inc() int {
 	return h.count
 }
 
+// Not sure if this should be considered the biz logic or if it is expected that hash is 3rd party service.
 func (h *HashRouter) hash(num int, password string) {
-	time.Sleep(5 * time.Second) // Latency! yay!
+	time.Sleep(time.Duration(h.sleep) * time.Second) // Latency! yay!
 	hasher := sha512.New()
 	hasher.Write([]byte(password))
 	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 	h.store.Put(num, sha)
+	h.HashDone <- sha
 }

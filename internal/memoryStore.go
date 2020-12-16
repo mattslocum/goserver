@@ -1,14 +1,18 @@
 package memorystore
 
-// TODO: ICacheStore interface here so we could swap out with backing store later.
+// ICacheStore interface so we could swap out with backing store later.
 type ICacheStore interface {
 	Get(key int) string
 	Put(key int, val string)
 }
 
-// TODO: thread safe? Because of other implementation of /hash, we know the key is thread safe though.
+// TODO: thread safe? But because of our implementation of /hash, we know the key is thread safe.
 type MemoryStore struct {
 	data map[int]string
+}
+
+func NewMemoryStore() *MemoryStore {
+	return &MemoryStore{data: make(map[int]string)}
 }
 
 func (m *MemoryStore) Get(key int) string {
@@ -20,5 +24,5 @@ func (m *MemoryStore) Put(key int, val string) {
 }
 
 // Singleton
-var Cache = &MemoryStore{data: make(map[int]string)}
+var Cache = NewMemoryStore()
 
