@@ -98,7 +98,7 @@ func (h *HashRouter) hash(num int, password string) {
 	time.Sleep(time.Duration(h.sleep) * time.Second) // Latency! yay!
 	hasher := sha512.New()
 	hasher.Write([]byte(password))
-	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	sha := base64.StdEncoding.EncodeToString(hasher.Sum(nil))
 	logger.Debug.Println("writing hash", sha)
 	h.store.Put(num, sha)
 

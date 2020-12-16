@@ -42,15 +42,15 @@ func TestHashRouter_ServeHTTP_post_hash(t *testing.T) {
 	tests := []struct{password string; hash string}{
 		{
 			password: "password",
-			hash:     "sQnzu7wkTrgkQZF-0G1hi5AI3Qmzvv0bXgc5THBqi7mAsdd4Xll27ASbRt9fEyavWi6m0QP9B8lThf-rDKy8hg==",
+			hash:     "sQnzu7wkTrgkQZF+0G1hi5AI3Qmzvv0bXgc5THBqi7mAsdd4Xll27ASbRt9fEyavWi6m0QP9B8lThf+rDKy8hg==",
 		},
 		{
 			password: "hunter2",
-			hash:     "a5ftaNFOs_GqlZzl1Jx9xhLh6x2v1zsecFhHSD_WpsgJ8s606N9v-ZhMYpj_AoXKzmYUv42qnwBwEBtsiYmeIg==",
+			hash:     "a5ftaNFOs/GqlZzl1Jx9xhLh6x2v1zsecFhHSD/WpsgJ8s606N9v+ZhMYpj/AoXKzmYUv42qnwBwEBtsiYmeIg==",
 		},
 		{
 			password: "angryMonkey",
-			hash:     "ZEHhWB65gUlzdVwtDQArEyx-KVLzp_aTaRaPlBzYRIFj6vjFdqEb0Q5B8zVKCZ0vKbZPZklJz0Fd7su2A-gf7Q==",
+			hash:     "ZEHhWB65gUlzdVwtDQArEyx+KVLzp/aTaRaPlBzYRIFj6vjFdqEb0Q5B8zVKCZ0vKbZPZklJz0Fd7su2A+gf7Q==",
 		},
 	}
 
