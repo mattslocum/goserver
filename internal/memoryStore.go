@@ -8,6 +8,7 @@ type ICacheStore interface {
 
 // TODO: thread safe? But because of our implementation of /hash, we know the key is thread safe.
 type MemoryStore struct {
+	// Really wish Golang supported generics, but it looks like they will soon.
 	data map[int]string
 }
 

@@ -14,18 +14,15 @@ import (
 
 // singleton
 var instance *HashRouter
-var mu = &sync.Mutex{} // guard instance
+var once sync.Once
 
 /**
  * Construct a HashRouter. Using this to do our DI since we don't have an IOC framework
  */
-func NewHashRouter() *HashRouter {
-	mu.Lock()
-	defer mu.Unlock()
-
-	if instance == nil {
+func GetHashRouter() *HashRouter {
+	once.Do(func() {
 		instance = &HashRouter{store: memorystore.Cache, sleep: 5, HashDone: make(chan string, 1)}
-	}
+	})
 	return instance
 }
 
