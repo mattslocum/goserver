@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/mattslocum/goserver/internal/logger"
 	"github.com/mattslocum/goserver/internal/memoryStore"
+	"github.com/mattslocum/goserver/internal/middleware"
 	"net/http"
 	"strconv"
 	"strings"
@@ -87,14 +88,21 @@ func (h *HashRouter) inc() int {
 	return h.count
 }
 
+const HashTimerName = "hash"
 // Not sure if this should be considered the biz logic or if it is expected that hash is 3rd party service.
 func (h *HashRouter) hash(num int, password string) {
 	h.wg.Add(1)
+	middleware.EnsureTimer(HashTimerName)
+	tStart := time.Now()
+
 	time.Sleep(time.Duration(h.sleep) * time.Second) // Latency! yay!
 	hasher := sha512.New()
 	hasher.Write([]byte(password))
 	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
-	h.store.Put(num, sha)
 	logger.Debug.Println("writing hash", sha)
+	h.store.Put(num, sha)
+
+	tEnd := time.Now()
+	middleware.Timers[HashTimerName].AddEvent(int64(tEnd.Sub(tStart)))
 	h.wg.Done()
 }

@@ -3,6 +3,7 @@ package routes
 import (
 	"encoding/json"
 	"github.com/mattslocum/goserver/internal/middleware"
+	routes "github.com/mattslocum/goserver/routes/hash"
 	"math"
 	"net/http"
 )
@@ -15,14 +16,17 @@ type statsData struct {
 type StatsRouter struct {}
 
 func (h *StatsRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	timer := middleware.Timers["GetHash"]
+	// For now, only give stats on hashing
+	middleware.EnsureTimer(routes.HashTimerName)
+	hashTimer := middleware.Timers[routes.HashTimerName]
+
 	average := 0.0
-	if timer.Count > 0 {
-		average = math.Round(float64(timer.Duration) / float64(timer.Count))
+	if hashTimer.Count > 0 {
+		average = math.Round(float64(hashTimer.Duration) / float64(hashTimer.Count))
 	}
 
 	data := statsData{
-		Total:   timer.Count,
+		Total:   hashTimer.Count,
 		Average: average,
 	}
 	json.NewEncoder(w).Encode(data)

@@ -14,7 +14,7 @@ func TestStatsRouter_ServeHTTP(t *testing.T) {
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	middleware.Timers["GetHash"] = &middleware.HttpTimer{Count:4, Duration:100}
+	middleware.Timers["PostHash"] = &middleware.EventTimer{Count: 4, Duration:100}
 
 	res, err := http.Get(ts.URL)
 	if err != nil {
@@ -36,7 +36,7 @@ func TestStatsRouter_ServeHTTP_zero(t *testing.T) {
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	middleware.Timers["GetHash"] = &middleware.HttpTimer{Count:0, Duration:0}
+	middleware.Timers["PostHash"] = &middleware.EventTimer{Count: 0, Duration:0}
 
 	res, err := http.Get(ts.URL)
 	if err != nil {
