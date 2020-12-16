@@ -41,7 +41,7 @@ func Serve() (err error) {
 
 	go func() {
 		logger.Info.Printf("Starting Server on port %s", port)
-		if err = srv.ListenAndServe(); err != nil {
+		if err = srv.ListenAndServe(); err != http.ErrServerClosed {
 			logger.Error.Fatalf("Error starting server: %s", err)
 		}
 	}()
