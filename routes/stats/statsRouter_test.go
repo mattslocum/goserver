@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/mattslocum/goserver/internal/middleware"
+	routes "github.com/mattslocum/goserver/routes/hash"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -14,7 +15,7 @@ func TestStatsRouter_ServeHTTP(t *testing.T) {
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	middleware.Timers["PostHash"] = &middleware.EventTimer{Count: 4, Duration:100}
+	middleware.Timers[routes.HashTimerName] = &middleware.EventTimer{Count: 4, Duration:100}
 
 	res, err := http.Get(ts.URL)
 	if err != nil {
@@ -36,7 +37,7 @@ func TestStatsRouter_ServeHTTP_zero(t *testing.T) {
 	ts := httptest.NewServer(router)
 	defer ts.Close()
 
-	middleware.Timers["PostHash"] = &middleware.EventTimer{Count: 0, Duration:0}
+	middleware.Timers[routes.HashTimerName] = &middleware.EventTimer{Count: 0, Duration:0}
 
 	res, err := http.Get(ts.URL)
 	if err != nil {

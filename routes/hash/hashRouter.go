@@ -59,7 +59,7 @@ func (h *HashRouter) get(w http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(w, "invalid hash ID. Example: /hash/123")
+		fmt.Fprintf(w, "Invalid hash ID. Example: /hash/123")
 		return
 	}
 	// we are okay if the number doesn't exist yet.

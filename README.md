@@ -3,6 +3,11 @@ First try at Golang. Pretty fun.
 
 Developed with GoLang 1.15
 
+### Routing
+All routes have a matching directory structure in /routes.
+I made a master router.go file that coordinates all the routing.
+I'm tempted to try a different routing structure where the http router is passed into each route handler. That way the file owns both the route location as well as the logic.
+
 ## Running Locally
 ```shell script
 $ go run main.go
@@ -34,13 +39,18 @@ LOG_LEVEL
 PORT
 * Defaults to 8080
 
+## Run Tests
+```shell script
+go test ./...
+```
+
 ## Building
 Because cloud native apps are awesome, the final deployable as a docker image.
 
 ```shell script
 $ docker build -t goserver . 
 ```
-Run locally:
+Run the build locally:
 ```shell script
 docker run -p 8080:8080 --rm -i goserver:latest
 ```

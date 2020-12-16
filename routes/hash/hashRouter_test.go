@@ -68,6 +68,29 @@ func TestHashRouter_ServeHTTP_post_hash(t *testing.T) {
 	}
 }
 
+func TestHashRouter_ServeHTTP_post_invalid(t *testing.T) {
+	router, _ := newRouter(memoryStore.NewMemoryStore())
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	res, err := http.PostForm(ts.URL, url.Values{"password": {}})
+	if err != nil {
+		t.Error(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		t.Error(err)
+	}
+	expect := "'password' is required"
+	if string(body) != expect {
+		t.Errorf("Wrong POST Response. got: %s, want: %s", body, expect)
+	}
+	if res.StatusCode != http.StatusUnprocessableEntity {
+		t.Errorf("Wrong Status Code. got: %d, want: %d", res.StatusCode, http.StatusUnprocessableEntity)
+	}
+}
+
 func TestHashRouter_ServeHTTP_get(t *testing.T) {
 	router, store := newRouter(memoryStore.NewMemoryStore())
 	ts := httptest.NewServer(router)
@@ -86,6 +109,29 @@ func TestHashRouter_ServeHTTP_get(t *testing.T) {
 	}
 	if string(body) != "two" {
 		t.Errorf("Wrong POST Response. got: %s, want: %s", body, "two")
+	}
+}
+
+func TestHashRouter_ServeHTTP_get_invalid(t *testing.T) {
+	router, _ := newRouter(memoryStore.NewMemoryStore())
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/hash/hacker")
+	if err != nil {
+		t.Error(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		t.Error(err)
+	}
+	expect := "Invalid hash ID. Example: /hash/123"
+	if string(body) != expect {
+		t.Errorf("Wrong POST Response. got: %s, want: %s", body, expect)
+	}
+	if res.StatusCode != http.StatusUnprocessableEntity {
+		t.Errorf("Wrong Status Code. got: %d, want: %d", res.StatusCode, http.StatusUnprocessableEntity)
 	}
 }
 
