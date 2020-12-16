@@ -3,8 +3,9 @@ package routes
 import (
 	"context"
 	"github.com/mattslocum/goserver/internal/middleware"
+	"github.com/mattslocum/goserver/internal/shutdown"
 	hash "github.com/mattslocum/goserver/routes/hash"
-	shutdown "github.com/mattslocum/goserver/routes/shutdown"
+	shutdownRouter "github.com/mattslocum/goserver/routes/shutdown"
 	stats "github.com/mattslocum/goserver/routes/stats"
 	"log"
 	"net/http"
@@ -20,11 +21,11 @@ func setupRoutes(router *http.ServeMux, group *sync.WaitGroup) {
 	// better pattern matching?
 	router.Handle("/hash", logger(timing("GetHash", hash.GetHashRouter(group))))
 	router.Handle("/hash/", logger(hash.GetHashRouter(group)))
-	router.Handle("/shutdown", logger(new(shutdown.ShutdownRouter)))
+	router.Handle("/shutdown", logger(new(shutdownRouter.ShutdownRouter)))
 	router.Handle("/stats", logger(new(stats.StatsRouter)))
 }
 
-func Serve(ctx context.Context) (err error) {
+func Serve() (err error) {
 	var group sync.WaitGroup
 	router := http.NewServeMux()
 	setupRoutes(router, &group)
@@ -45,13 +46,14 @@ func Serve(ctx context.Context) (err error) {
 		return err
 	}
 
-	<-ctx.Done()
+	<-shutdown.Ctx.Done()
+	log.Println("Stopping...")
 
-	ctxShutDown, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	ctxTimer, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
 	defer func() {
 		cancel()
 	}()
-	if err = srv.Shutdown(ctxShutDown); err != nil {
+	if err = srv.Shutdown(ctxTimer); err != nil {
 		log.Fatalf("server Shutdown Failed: %s", err)
 	}
 

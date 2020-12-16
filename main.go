@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"github.com/mattslocum/goserver/internal/shutdown"
 	"github.com/mattslocum/goserver/routes"
 	"log"
 	"os"
@@ -12,15 +12,13 @@ func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 
-	ctx, cancel := context.WithCancel(context.Background())
-
 	go func() {
 		oscall := <-sig
-		log.Printf("System signal: %+v\nStopping...", oscall)
-		cancel()
+		log.Printf("System signal: %+v", oscall)
+		shutdown.Shutdown()
 	}()
 
-	if err := routes.Serve(ctx); err != nil {
+	if err := routes.Serve(); err != nil {
 		log.Printf("Server Failed. %v\n", err)
 	}
 }
